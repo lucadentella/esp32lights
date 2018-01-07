@@ -1,0 +1,51 @@
+menu "esp32lights configuration"
+
+config WIFI_SSID
+    string "Wifi SSID"
+	default "mywifi"
+
+config WIFI_PASSWORD
+    string "Wifi password"
+	default "mypassword"
+
+config TIMEZONE
+    string "Local timezone"
+	default "CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00"
+
+config RELAY_PIN
+    int "Number of the PIN connected to the RELAY"
+	range 0 34
+	default 0
+
+endmenu
+
+	
+menu "SPIFFS configuration"	
+	
+config SPIFFS_BASE_ADDR
+    hex "SPIFFS Base address"
+    range 0x100000 0x1FFE000
+    default 0x180000
+    help
+	Starting address of the SPIFFS area in ESP32 Flash
+	Write the address in hex format, 0x180000
+
+config SPIFFS_SIZE
+    int "SPIFFS Size in bytes"
+    range 262144 2097152
+    default 1048576
+
+config SPIFFS_LOG_BLOCK_SIZE
+    int "SPIFFS Logical block size"
+    range 4098 65536
+    default 8192
+
+config SPIFFS_LOG_PAGE_SIZE
+    int "SPIFFS Logical page size"
+    range 256 2048
+    default 256
+    help
+	Set it to the phisycal page size og the used SPI Flash chip.
+	
+endmenu
+

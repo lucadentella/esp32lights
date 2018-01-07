@@ -1,0 +1,151 @@
+<html>
+<head>
+    <title>ESP32 Lights</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="jqm.css">
+	<link rel="stylesheet" href="esp32.css">
+    <script src="jq.js"></script>
+    <script src="jqm.js"></script>
+	<script>
+	
+	function refreshLightLevel() {
+	
+		$.getJSON('getLight', function(data) {
+			$.each(data, function(key, val) {
+				if(key == 'lux') $('#actual-light-level').val(val);
+			});
+		});
+	};
+	
+	function refreshConfig() {
+	
+		$.getJSON('getConfig', function(data) {
+			$.each(data, function(key, val) {
+				
+				if(key == 'mode') $("#actual-mode").text("Actual mode: " + val);
+				
+				if(key == 'status') {
+				
+					if(val == 'on') {
+						$("#set-manual").prop('checked', true);
+						$("#actual-mode").text($("#actual-mode").text() + ", relay ON");
+					}
+					if(val == 'off') {
+						$("#set-manual").prop('checked', false);
+						$("#actual-mode").text($("#actual-mode").text() + ", relay OFF");
+					}
+					$("#set-manual").flipswitch("refresh");
+				}	
+
+				if(key == 'p1start') $("#set-p1-start").val(val);
+				if(key == 'p1end') $("#set-p1-end").val(val);
+				if(key == 'p2start') $("#set-p2-start").val(val);
+				if(key == 'p2end') $("#set-p2-end").val(val);
+				
+				if(key == 'lux') {
+					$("#set-light-level").val(val);
+					$("#set-light-level").slider("refresh");
+				}
+			});
+		});
+	};
+	
+	$(document).ready(function() {
+	
+		refreshConfig();
+		
+		$("#set-manual").change(function() {
+
+			var data = {'mode':'manual','status':$("#set-manual").is(':checked') ? "on" : "off"};
+			$.ajax({
+			url: 'setConfig',
+			type: 'POST',
+			contentType:'application/json',
+			data: JSON.stringify(data),
+			dataType:'json'
+			});
+		});
+		
+		$("#time-button").click(function() {
+		
+			if(($("#set-p2-start").val() == "") || $("#set-p2-end").val() == "")
+				var data = {'mode':'timeP1','p1start':$("#set-p1-start").val(),'p1end':$("#set-p1-end").val()};
+			else 
+				var data = {'mode':'timeP2','p1start':$("#set-p1-start").val(),'p1end':$("#set-p1-end").val(),'p2start':$("#set-p2-start").val(),'p2end':$("#set-p2-end").val()};
+			$.ajax({
+			url: 'setConfig',
+			type: 'POST',
+			contentType:'application/json',
+			data: JSON.stringify(data),
+			dataType:'json'
+			});
+		});
+		
+		$("#light-button").click(function() {
+		
+			var data = {'mode':'light','lux':$("#set-light-level").val()};
+			$.ajax({
+			url: 'setConfig',
+			type: 'POST',
+			contentType:'application/json',
+			data: JSON.stringify(data),
+			dataType:'json'
+			});
+		});
+		
+		setInterval("refreshLightLevel()", 5000);
+	});
+	</script>
+</head>
+<body>
+    <div data-role="page">
+ 
+        <div data-role="header">
+            <h1>ESP32 Lights</h1>
+        </div><!-- /header -->
+ 
+        <div role="main" class="ui-content">
+			<div data-role="tabs" id="tabs">
+				<div data-role="navbar">
+					<ul>
+					<li><a href="#manual" data-ajax="false" class="ui-btn-active">Manual</a></li>
+					<li><a href="#time" data-ajax="false">Time</a></li>
+					<li><a href="#light" data-ajax="false">Light</a></li>
+					</ul>
+				</div>
+				<div id="manual" class="ui-body-d ui-content">
+					<div class="empty-separator"></div>
+					<div><input type="checkbox" id="set-manual" data-role="flipswitch"></div>
+				</div>
+				<div id="time" class="ui-body-d ui-content">
+						<label for="time-1">Period 1 - start:</label>
+						<input type="time" data-clear-btn="false" name="set-p1-start" id="set-p1-start" value="" data-wrapper-class="time-input">
+						<label for="time-2">Period 1 - end:</label>
+						<input type="time" data-clear-btn="false" name="set-p1-end" id="set-p1-end" value="">
+						<label for="time-1">Period 2 - start:</label>
+						<input type="time" data-clear-btn="false" name="set-p2-start" id="set-p2-start" value="">
+						<label for="time-2">Period 2 - end:</label>
+						<input type="time" data-clear-btn="false" name="set-p2-end" id="set-p2-end" value="">
+						<input type="button" id="time-button" value="SET">
+				</div>
+				<div id="light" class="ui-body-d ui-content">
+						<label for="time-1">Light level for switching on:</label>
+						<input type="range" data-clear-btn="true" name="set-light-level" id="set-light-level" min="0" max="10000">
+						<label for="time-1">Actual light level:</label>
+						<input type="number" name="actual-light-level" id="actual-light-level" value="" data-disabled="true">
+						<div class="empty-separator"></div>
+						<input type="button" id="light-button" value="SET">
+				</div>
+			</div>
+        </div><!-- /content -->
+ 
+        <div data-role="footer" data-position="fixed">
+            <h4 id="actual-mode"></h4>
+        </div><!-- /footer -->
+ 
+    </div><!-- /page -->
+
+
+	
+	</body>
+</html>
